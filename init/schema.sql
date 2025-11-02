@@ -789,41 +789,6 @@ CREATE TABLE app.shifts_check (
   )
 );
 
--- Вариант B: TRIGGER
-CREATE TABLE app.shifts_trg (
-  shift_id  bigserial PRIMARY KEY,
-  firefighter_id bigint NOT NULL,
-  start_at timestamptz NOT NULL,
-  end_at timestamptz NOT NULL,
-  note text
-);
-
--- Функция-валидатор (и аудит) для триггерной таблицы
-CREATE OR REPLACE FUNCTION app.fn_validate_shift()
-RETURNS trigger
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  IF NEW.end_at < NEW.start_at THEN
-    INSERT INTO audit.shift_violations(firefighter_id, start_at, end_at, reason)
-    VALUES (NEW.firefighter_id, NEW.start_at, NEW.end_at, 'end_at < start_at');
-    RAISE EXCEPTION 'Shift end_at (% ) earlier than start_at (%)', NEW.end_at, NEW.start_at
-      USING ERRCODE = '23514';
-  ELSIF NEW.end_at > NEW.start_at + interval '24 hours' THEN
-    INSERT INTO audit.shift_violations(firefighter_id, start_at, end_at, reason)
-    VALUES (NEW.firefighter_id, NEW.start_at, NEW.end_at, 'duration > 24h');
-    RAISE EXCEPTION 'Shift duration exceeds 24h (start %, end %)', NEW.start_at, NEW.end_at
-      USING ERRCODE = '23514';
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-CREATE TRIGGER trg_validate_shift_biu
-  BEFORE INSERT OR UPDATE ON app.shifts_trg
-  FOR EACH ROW
-  EXECUTE FUNCTION app.fn_validate_shift();
-
 SET ROLE fireadmin;
 GRANT USAGE ON SCHEMA audit TO app_owner;
 
