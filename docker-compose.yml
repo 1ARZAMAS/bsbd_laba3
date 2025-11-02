@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  db:
+    image: firestation-postgres:18-pgaudit
+    container_name: firestation-db
+    restart: always
+    environment:
+      POSTGRES_USER: fireadmin
+      POSTGRES_PASSWORD: firepass
+      POSTGRES_DB: firestation
+      PGDATA: /var/lib/postgresql/pgdata
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./init:/docker-entrypoint-initdb.d:ro
+    command: >
+      postgres
+      -c log_connections=on
+      -c shared_preload_libraries='pgaudit'
+      -c pgaudit.log='all'
+      -c pgaudit.role='fireadmin'
+volumes:
+  pgdata:
+
