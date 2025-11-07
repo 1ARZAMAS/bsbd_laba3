@@ -4,8 +4,6 @@ CREATE ROLE firestation_users NOLOGIN;
 GRANT firestation_users TO stat_user_1, stat_user_2, stat_user_3, stat_user_4, stat_user_5, stat_user_6, stat_user_7, stat_user_8, stat_user_9, stat_user_10; 
 GRANT USAGE ON SCHEMA app TO firestation_users;
 GRANT USAGE ON SCHEMA ref TO firestation_users;
---GRANT USAGE ON SCHEMA app TO stat_user_1;
---GRANT USAGE ON SCHEMA ref TO stat_user_1;
 
 GRANT SELECT, UPDATE, DELETE, INSERT ON ALL TABLES IN SCHEMA app TO firestation_users;
 GRANT SELECT ON ALL TABLES IN SCHEMA ref TO firestation_users;
@@ -49,7 +47,24 @@ AS $$
 $$;
 
 -- Установка текущего сегмента 
-CREATE OR REPLACE FUNCTION sec.set_current_segment(p_segment_id int)
+--CREATE OR REPLACE FUNCTION sec.set_current_segment(p_segment_id int)
+--RETURNS void
+--LANGUAGE plpgsql
+--SECURITY DEFINER
+--AS $$
+--BEGIN
+--  IF NOT sec.has_access_to_segment(p_segment_id) THEN
+--    RAISE EXCEPTION 'Нет прав на сегмент %', p_segment_id USING ERRCODE = '28000';
+--  END IF;
+--
+--  -- FALSE -> значение сохраняется на сессию
+--  PERFORM set_config('app.current_segment', p_segment_id::text, false);
+--END
+--$$;
+
+--ALTER FUNCTION sec.set_current_segment(int) SET search_path = public, pg_temp, sec, ref;
+
+CREATE OR REPLACE FUNCTION sec.set_session_ctx(p_segment_id int, p_actor_id int)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -59,18 +74,21 @@ BEGIN
     RAISE EXCEPTION 'Нет прав на сегмент %', p_segment_id USING ERRCODE = '28000';
   END IF;
 
-  -- FALSE -> значение сохраняется на сессию
-  PERFORM set_config('app.current_segment', p_segment_id::text, false);
+  PERFORM set_config('app.current_segment', p_segment_id::text, true);
+
+  IF p_actor_id IS NOT NULL THEN
+    PERFORM set_config('app.actor_id', p_actor_id::text, true); -- тоже локально
+  END IF;
 END
 $$;
-
-ALTER FUNCTION sec.set_current_segment(int) SET search_path = public, pg_temp, sec, ref;
+ALTER FUNCTION sec.set_session_ctx(int, int) SET search_path = pg_catalog, public, pg_temp, sec, ref;
 
 
 GRANT USAGE ON SCHEMA sec TO firestation_users;
 GRANT EXECUTE ON FUNCTION sec.current_segment() TO firestation_users;
-GRANT EXECUTE ON FUNCTION sec.set_current_segment(int) TO firestation_users;
+--GRANT EXECUTE ON FUNCTION sec.set_current_segment(int) TO firestation_users;
 GRANT EXECUTE ON FUNCTION sec.has_access_to_segment(int) TO firestation_users;
+GRANT EXECUTE ON FUNCTION sec.set_session_ctx(int, int) TO firestation_users;
 
 CREATE INDEX IF NOT EXISTS ix_incidents_segment ON app.incidents(segment_id);
 CREATE INDEX IF NOT EXISTS ix_stations_segment ON app.stations(segment_id);
