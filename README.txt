@@ -1,0 +1,1 @@
+SELECT sec.set_current_segment( (SELECT id FROM ref.segment WHERE role_name = 'stat_user_1') );
