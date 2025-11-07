@@ -10,14 +10,14 @@ USING (
 );
 
 -- STATIONS
-CREATE POLICY rls_stations_del ON app.stations
-AS PERMISSIVE
-FOR DELETE
-TO firestation_users
-USING (
-  (sec.current_segment() IS NOT NULL AND app.stations.segment_id = sec.current_segment())
-  OR sec.has_access_to_segment(app.stations.segment_id)
-);
+--CREATE POLICY rls_stations_del ON app.stations
+--AS PERMISSIVE
+--FOR DELETE
+--TO firestation_users
+--USING (
+--  (sec.current_segment() IS NOT NULL AND app.stations.segment_id = sec.current_segment())
+--  OR sec.has_access_to_segment(app.stations.segment_id)
+--);
 
 -- FIREFIGHTERS
 CREATE POLICY rls_firefighters_del ON app.firefighters

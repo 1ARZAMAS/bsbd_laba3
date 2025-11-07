@@ -19,6 +19,24 @@ services:
       -c shared_preload_libraries='pgaudit'
       -c pgaudit.log='all'
       -c pgaudit.role='fireadmin'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fireadmin} -d ${POSTGRES_DB:-firestation} -h localhost -p 5432"]
+      interval: 3s
+      timeout: 2s
+      retries: 40
+      start_period: 5s
+
+  tests:
+    image: firestation-postgres:18-pgaudit
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: firepass
+    entrypoint: ["bash","-lc","pg_prove -h db -U fireadmin -d firestation /tests/*.sql"]
+    volumes:
+      - ./tests:/tests:ro
+
 volumes:
   pgdata:
 

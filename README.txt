@@ -6,3 +6,6 @@ SELECT sec.set_session_ctx(
   (SELECT id FROM ref.segment WHERE role_name = current_role),
   1001
 );
+
+
+docker compose run --rm tester

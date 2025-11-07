@@ -18,14 +18,14 @@ WITH CHECK (
 );
 
 -- STATIONS
-CREATE POLICY rls_stations_insert ON app.stations
-AS PERMISSIVE
-FOR INSERT 
-TO firestation_users
-WITH CHECK (
-  (sec.current_segment() IS NOT NULL AND app.stations.segment_id = sec.current_segment())
-  OR sec.has_access_to_segment(app.stations.segment_id)
-);
+--CREATE POLICY rls_stations_insert ON app.stations
+--AS PERMISSIVE
+--FOR INSERT 
+--TO firestation_users
+--WITH CHECK (
+--  (sec.current_segment() IS NOT NULL AND app.stations.segment_id = sec.current_segment())
+--  OR sec.has_access_to_segment(app.stations.segment_id)
+--);
 
 -- FIREFIGHTERS
 CREATE POLICY rls_firefighters_insert ON app.firefighters
