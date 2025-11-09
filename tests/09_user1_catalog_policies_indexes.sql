@@ -1,7 +1,7 @@
 SET search_path = pgtap, public, ref, app, sec, audit, pg_temp;
 SET client_min_messages = warning;
 
-SELECT plan(8);
+SELECT plan(10);
 SET search_path = pgtap, public, ref, app, sec, audit, pg_temp;
 
 BEGIN;
@@ -33,30 +33,38 @@ SELECT ok(
   'Force RLS enabled on key tables'
 );
 
--- 3–8) индексы по segment_id существуют
+-- 3–10) индексы по segment_id существуют
 SELECT ok(
-  EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='app' AND indexname='ix_incidents_segment'),
-  'ix_incidents_segment exists'
+  EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='app' AND indexname='ix_incidents_segment_station'),
+  'ix_incidents_segment_station exists'
 );
 SELECT ok(
-  EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='app' AND indexname='ix_stations_segment'),
-  'ix_stations_segment exists'
+  EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='app' AND indexname='ix_stations_segment_name'),
+  'ix_stations_segment_name exists'
 );
 SELECT ok(
-  EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='app' AND indexname='ix_firefighters_segment'),
-  'ix_firefighters_segment exists'
+  EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='app' AND indexname='ix_firefighters_segment_station'),
+  'ix_firefighters_segment_station exists'
 );
 SELECT ok(
-  EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='app' AND indexname='ix_vehicles_segment'),
-  'ix_vehicles_segment exists'
+  EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='app' AND indexname='ix_firefighters_segment_last_name'),
+  'ix_firefighters_segment_last_name exists'
 );
 SELECT ok(
-  EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='app' AND indexname='ix_equipment_segment'),
-  'ix_equipment_segment exists'
+  EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='app' AND indexname='ix_vehicles_segment_station'),
+  'ix_vehicles_segment_station exists'
 );
 SELECT ok(
-  EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='app' AND indexname='ix_shifts_segment'),
-  'ix_shifts_segment exists'
+  EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='app' AND indexname='ix_vehicles_segment_plate'),
+  'ix_vehicles_segment_plate exists'
+);
+SELECT ok(
+  EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='app' AND indexname='ix_equipment_segment_station'),
+  'ix_equipment_segment_station exists'
+);
+SELECT ok(
+  EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='app' AND indexname='ix_shifts_segment_station_date'),
+  'ix_shifts_segment_station_date exists'
 );
 
 SELECT * FROM finish();

@@ -90,10 +90,19 @@ GRANT EXECUTE ON FUNCTION sec.current_segment() TO firestation_users;
 GRANT EXECUTE ON FUNCTION sec.has_access_to_segment(int) TO firestation_users;
 GRANT EXECUTE ON FUNCTION sec.set_session_ctx(int, int) TO firestation_users;
 
-CREATE INDEX IF NOT EXISTS ix_incidents_segment ON app.incidents(segment_id);
-CREATE INDEX IF NOT EXISTS ix_stations_segment ON app.stations(segment_id);
-CREATE INDEX IF NOT EXISTS ix_firefighters_segment ON app.firefighters(segment_id);
-CREATE INDEX IF NOT EXISTS ix_vehicles_segment ON app.vehicles(segment_id);
-CREATE INDEX IF NOT EXISTS ix_equipment_segment ON app.equipment(segment_id);
-CREATE INDEX IF NOT EXISTS ix_shifts_segment ON app.shifts(segment_id);
-CREATE INDEX IF NOT EXISTS ix_responses_segment ON app.responses(segment_id);
+--CREATE INDEX IF NOT EXISTS ix_incidents_segment ON app.incidents(segment_id, station_id);
+--CREATE INDEX IF NOT EXISTS ix_stations_segment ON app.stations(segment_id);
+--CREATE INDEX IF NOT EXISTS ix_firefighters_segment ON app.firefighters(segment_id);
+--CREATE INDEX IF NOT EXISTS ix_vehicles_segment ON app.vehicles(segment_id);
+--CREATE INDEX IF NOT EXISTS ix_equipment_segment ON app.equipment(segment_id);
+--CREATE INDEX IF NOT EXISTS ix_shifts_segment ON app.shifts(segment_id);
+--CREATE INDEX IF NOT EXISTS ix_responses_segment ON app.responses(segment_id);
+
+CREATE INDEX IF NOT EXISTS ix_incidents_segment_station ON app.incidents(segment_id, station_id);
+CREATE INDEX IF NOT EXISTS ix_stations_segment_name ON app.stations(segment_id, name);
+CREATE INDEX IF NOT EXISTS ix_firefighters_segment_station ON app.firefighters(segment_id, station_id);
+CREATE INDEX IF NOT EXISTS ix_firefighters_segment_last_name ON app.firefighters(segment_id, last_name);
+CREATE INDEX IF NOT EXISTS ix_vehicles_segment_station ON app.vehicles(segment_id, station_id);
+CREATE INDEX IF NOT EXISTS ix_vehicles_segment_plate ON app.vehicles(segment_id, plate_number);
+CREATE INDEX IF NOT EXISTS ix_equipment_segment_station ON app.equipment(segment_id, station_id);
+CREATE INDEX IF NOT EXISTS ix_shifts_segment_station_date ON app.shifts(segment_id, station_id);
