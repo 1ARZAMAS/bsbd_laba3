@@ -96,7 +96,6 @@ GRANT app_owner TO security_admin;
 REVOKE SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA app, ref, stg, audit FROM security_admin;
 
 
-
 -- Запрещаем PUBLIC доступ
 REVOKE ALL ON SCHEMA app FROM PUBLIC;
 REVOKE ALL ON SCHEMA ref FROM PUBLIC;
