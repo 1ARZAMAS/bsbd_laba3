@@ -1,13 +1,14 @@
 SET client_min_messages = warning;
-SET search_path = tap, public, ref, app, sec, audit, pg_temp;
+SET search_path = pgtap, public, ref, app, sec, audit, pg_temp;
 SELECT plan(3);
 
 -- работаем от лица пользователя станции
 SET ROLE stat_user_1;
 
-SET search_path = tap, public, ref, app, sec, audit, pg_temp;
+SET search_path = pgtap, public, ref, app, sec, audit, pg_temp;
 
 BEGIN;
+
 SELECT sec.set_session_ctx((SELECT id FROM ref.segment WHERE role_name = current_role), 1001);
 
 -- 1) контекст выставлен
@@ -26,7 +27,8 @@ SELECT is(
   'foreign incidents are invisible'
 );
 
-ROLLBACK;
 RESET ROLE;
 
 SELECT * FROM finish();
+
+ROLLBACK;

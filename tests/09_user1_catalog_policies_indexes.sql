@@ -1,8 +1,11 @@
-SET search_path = tap, public, ref, app, sec, audit, pg_temp;
+SET search_path = pgtap, public, ref, app, sec, audit, pg_temp;
 SET client_min_messages = warning;
 
 SELECT plan(8);
-SET search_path = tap, public, ref, app, sec, audit, pg_temp;
+SET search_path = pgtap, public, ref, app, sec, audit, pg_temp;
+
+BEGIN;
+SAVEPOINT sp_ctx;
 
 -- 1) на ключевых таблицах включён RLS
 WITH rels AS (
@@ -57,3 +60,6 @@ SELECT ok(
 );
 
 SELECT * FROM finish();
+
+ROLLBACK TO SAVEPOINT sp_ctx;  -- откатываем только свои изменения
+RELEASE SAVEPOINT sp_ctx;

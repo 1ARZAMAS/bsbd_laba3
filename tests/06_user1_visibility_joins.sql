@@ -1,11 +1,12 @@
-SET search_path = tap, public, ref, app, sec, audit, pg_temp;
+SET search_path = pgtap, public, ref, app, sec, audit, pg_temp;
 SET client_min_messages = warning;
 SELECT plan(4);
 
 SET ROLE stat_user_1;
-SET search_path = tap, public, ref, app, sec, audit, pg_temp;
+SET search_path = pgtap, public, ref, app, sec, audit, pg_temp;
 
 BEGIN;
+SAVEPOINT sp_ctx;
 SELECT sec.set_session_ctx((SELECT id FROM ref.segment WHERE role_name = current_role), 3001);
 
 -- 1) join incidents→stations: в результате все строки должны принадлежать текущему сегменту
@@ -66,7 +67,9 @@ SELECT is(
   'JOIN count equals filtered count (vehicles)'
 );
 
-ROLLBACK;
 RESET ROLE;
 
 SELECT * FROM finish();
+
+ROLLBACK TO SAVEPOINT sp_ctx;  -- откатываем только свои изменения
+RELEASE SAVEPOINT sp_ctx;

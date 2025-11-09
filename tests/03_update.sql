@@ -1,12 +1,13 @@
 SET client_min_messages = warning;
-SET search_path = tap, public, ref, app, sec, audit, pg_temp;
+SET search_path = pgtap, public, ref, app, sec, audit, pg_temp;
 SELECT plan(2);
 
 SET ROLE stat_user_1;
-SET search_path = tap, public, ref, app, sec, audit, pg_temp;
+SET search_path = pgtap, public, ref, app, sec, audit, pg_temp;
+
+BEGIN;
 
 -- 1) OK UPDATE в своём сегменте
-BEGIN;
 SELECT sec.set_session_ctx((SELECT id FROM ref.segment WHERE role_name = current_role), 1201);
 
 SELECT lives_ok($$
@@ -22,10 +23,7 @@ SELECT lives_ok($$
   WHERE i.incident_id = t.incident_id;
 $$, 'update in own segment succeeds');
 
-ROLLBACK;
-
 -- 2) BAD UPDATE: перевод строки в чужой сегмент → ОШИБКА (WITH CHECK)
-BEGIN;
 SELECT sec.set_session_ctx((SELECT id FROM ref.segment WHERE role_name = current_role), 1202);
 
 SELECT throws_ok($$
@@ -45,9 +43,10 @@ SELECT throws_ok($$
      SET segment_id = (SELECT seg_id FROM other)
   FROM t
   WHERE i.incident_id = t.incident_id;
-$$, '.*row-level security policy.*', 'update to foreign segment_id fails');
+$$, 'new row violates row-level security policy for table "incidents"', 'update to foreign segment_id fails');
 
-ROLLBACK;
 RESET ROLE;
 
 SELECT * FROM finish();
+
+ROLLBACK;

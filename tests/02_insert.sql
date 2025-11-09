@@ -1,12 +1,13 @@
 SET client_min_messages = warning;
-SET search_path = tap, public, ref, app, sec, audit, pg_temp;
+SET search_path = pgtap, public, ref, app, sec, audit, pg_temp;
 SELECT plan(2);
 
 SET ROLE stat_user_1;
-SET search_path = tap, public, ref, app, sec, audit, pg_temp;
+SET search_path = pgtap, public, ref, app, sec, audit, pg_temp;
+
+BEGIN;
 
 -- 1) BAD INSERT: своя станция + чужой сегмент → ОШИБКА (WITH CHECK)
-BEGIN;
 SELECT sec.set_session_ctx((SELECT id FROM ref.segment WHERE role_name = current_role), 1101);
 
 SELECT throws_ok($$
@@ -25,11 +26,9 @@ SELECT throws_ok($$
   INSERT INTO app.incidents(station_id, segment_id, incident_type, priority, location, reported_at, description)
   SELECT mine.station_id, other.seg_id, 'Пожар', 'high', 'ул. Чужая, 13', now(), 'RLS SHOULD FAIL (insert)'
   FROM mine, other;
-$$, '.*row-level security policy.*', 'insert with wrong segment_id fails');
-ROLLBACK;
+$$, 'new row violates row-level security policy for table "incidents"', 'insert with wrong segment_id fails');
 
 -- 2) OK INSERT: всё в своём сегменте
-BEGIN;
 SELECT sec.set_session_ctx((SELECT id FROM ref.segment WHERE role_name = current_role), 1102);
 
 SELECT lives_ok($$
@@ -44,7 +43,8 @@ SELECT lives_ok($$
   FROM s;
 $$, 'insert in own segment succeeds');
 
-ROLLBACK;
 RESET ROLE;
 
 SELECT * FROM finish();
+
+ROLLBACK;

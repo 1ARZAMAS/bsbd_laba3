@@ -1,12 +1,13 @@
-SET search_path = tap, public, ref, app, sec, audit, pg_temp;
+SET search_path = pgtap, public, ref, app, sec, audit, pg_temp;
 SET client_min_messages = warning;
 SELECT plan(6);
 
 SET ROLE stat_user_1;
-SET search_path = tap, public, ref, app, sec, audit, pg_temp;
+SET search_path = pgtap, public, ref, app, sec, audit, pg_temp;
 
 -- 1) INSERT equipment в своём сегменте (без явного PK — проверяем доступ к sequence)
 BEGIN;
+SAVEPOINT sp_ctx;
 SELECT sec.set_session_ctx((SELECT id FROM ref.segment WHERE role_name = current_role), 3101);
 
 SELECT lives_ok($$
@@ -20,10 +21,8 @@ SELECT lives_ok($$
   SELECT s.station_id, sec.current_segment(), 'Рукав тест', 'EQ-T-001', 1, 'good', now()::date
   FROM s;
 $$, 'equipment insert (own segment) succeeds');
-ROLLBACK;
 
 -- 2) UPDATE vehicles: безопасно меняем поле внутри своего сегмента
-BEGIN;
 SELECT sec.set_session_ctx((SELECT id FROM ref.segment WHERE role_name = current_role), 3102);
 
 SELECT lives_ok($$
@@ -39,10 +38,8 @@ SELECT lives_ok($$
   FROM pick
   WHERE v.vehicle_id = pick.vehicle_id;
 $$, 'vehicles update (own segment) succeeds');
-ROLLBACK;
 
 -- 3) UPDATE firefighters: попытка присвоить station_id из чужого сегмента → ОШИБКА (WITH CHECK/FK)
-BEGIN;
 SELECT sec.set_session_ctx((SELECT id FROM ref.segment WHERE role_name = current_role), 3103);
 
 SELECT throws_ok($$
@@ -63,11 +60,9 @@ SELECT throws_ok($$
       segment_id = (SELECT segment_id FROM other)
   FROM mine
   WHERE f.firefighter_id = mine.firefighter_id;
-$$, '.*(row-level security policy|violates).*', 'firefighters: move to foreign station/segment fails');
-ROLLBACK;
+$$, 'new row violates row-level security policy for table "firefighters"', 'firefighters: move to foreign station/segment fails');
 
 -- 4) INSERT vehicles с неверным segment_id (чужой) при своей station_id → ОШИБКА
-BEGIN;
 SELECT sec.set_session_ctx((SELECT id FROM ref.segment WHERE role_name = current_role), 3104);
 
 SELECT throws_ok($$
@@ -93,11 +88,9 @@ SELECT throws_ok($$
     (SELECT status_id FROM ref.vehicle_statuses LIMIT 1),
     now()::date
   FROM my_station, other_seg;
-$$, '.*row-level security policy.*', 'vehicles insert with wrong segment fails');
-ROLLBACK;
+$$, 'new row violates row-level security policy for table "vehicles"', 'vehicles insert with wrong segment fails');
 
 -- 5) DELETE equipment своей строки (ok)
-BEGIN;
 SELECT sec.set_session_ctx((SELECT id FROM ref.segment WHERE role_name = current_role), 3105);
 SELECT lives_ok($$
   WITH ins AS (
@@ -113,10 +106,7 @@ SELECT lives_ok($$
   USING ins
   WHERE e.equipment_id = ins.equipment_id;
 $$, 'equipment delete (own row) succeeds');
-ROLLBACK;
-
 -- 6) DELETE vehicles чужой строки через обычный DELETE → 0 строк (не ошибка, проверяем факт нуля)
-BEGIN;
 SELECT sec.set_session_ctx((SELECT id FROM ref.segment WHERE role_name = current_role), 3106);
 
 -- замеряем до/после: количество видимых записей не меняется
@@ -138,7 +128,9 @@ SELECT is(
   'vehicles: plain delete of foreign row affects 0 rows'
 );
 
-ROLLBACK;
 RESET ROLE;
 
 SELECT * FROM finish();
+
+ROLLBACK TO SAVEPOINT sp_ctx;  -- откатываем только свои изменения
+RELEASE SAVEPOINT sp_ctx;
