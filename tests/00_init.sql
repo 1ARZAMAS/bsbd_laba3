@@ -45,22 +45,6 @@ BEGIN
   END IF;
 END$$;
 
--- кто имеет доступ к сегменту: роль должна совпадать с role_name в ref.segment
-CREATE OR REPLACE FUNCTION sec.has_access_to_segment(p_segment_id int)
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SET search_path = ref, pg_catalog, public
-AS $$
-  SELECT EXISTS(
-    SELECT 1
-    FROM ref.segment s
-    WHERE s.id = p_segment_id
-      AND s.role_name = current_role::text
-  );
-$$;
-
-GRANT EXECUTE ON FUNCTION sec.has_access_to_segment(int) TO PUBLIC;
 
 DROP FUNCTION IF EXISTS sec.set_session_ctx(integer,integer);
 -- установка контекста только при наличии доступа
@@ -112,7 +96,6 @@ BEGIN
   END IF;
 END$$;
 
-GRANT EXECUTE ON FUNCTION sec.has_access_to_segment(int) TO PUBLIC;
 GRANT EXECUTE ON FUNCTION sec.set_session_ctx(int,int) TO PUBLIC;
 
 GRANT USAGE ON SCHEMA pgtap TO PUBLIC;

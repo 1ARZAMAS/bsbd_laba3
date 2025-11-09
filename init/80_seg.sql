@@ -30,40 +30,6 @@ AS $$
   )
 $$;
 
-CREATE OR REPLACE FUNCTION sec.has_access_to_segment(p_segment_id int)
-RETURNS boolean
-LANGUAGE sql
-STABLE
-AS $$
-    SELECT EXISTS (
-      SELECT 1
-      FROM ref.segment s
-      WHERE s.id = p_segment_id
-          AND (
-              s.role_name = current_user
-            OR pg_has_role(current_user, s.role_name, 'member')
-          )
-    );
-$$;
-
--- Установка текущего сегмента 
---CREATE OR REPLACE FUNCTION sec.set_current_segment(p_segment_id int)
---RETURNS void
---LANGUAGE plpgsql
---SECURITY DEFINER
---AS $$
---BEGIN
---  IF NOT sec.has_access_to_segment(p_segment_id) THEN
---    RAISE EXCEPTION 'Нет прав на сегмент %', p_segment_id USING ERRCODE = '28000';
---  END IF;
---
---  -- FALSE -> значение сохраняется на сессию
---  PERFORM set_config('app.current_segment', p_segment_id::text, false);
---END
---$$;
-
---ALTER FUNCTION sec.set_current_segment(int) SET search_path = public, pg_temp, sec, ref;
-
 CREATE OR REPLACE FUNCTION sec.set_session_ctx(p_segment_id int, p_actor_id int)
 RETURNS void
 LANGUAGE plpgsql
@@ -86,17 +52,7 @@ ALTER FUNCTION sec.set_session_ctx(int, int) SET search_path = pg_catalog, publi
 
 GRANT USAGE ON SCHEMA sec TO firestation_users;
 GRANT EXECUTE ON FUNCTION sec.current_segment() TO firestation_users;
---GRANT EXECUTE ON FUNCTION sec.set_current_segment(int) TO firestation_users;
-GRANT EXECUTE ON FUNCTION sec.has_access_to_segment(int) TO firestation_users;
 GRANT EXECUTE ON FUNCTION sec.set_session_ctx(int, int) TO firestation_users;
-
---CREATE INDEX IF NOT EXISTS ix_incidents_segment ON app.incidents(segment_id, station_id);
---CREATE INDEX IF NOT EXISTS ix_stations_segment ON app.stations(segment_id);
---CREATE INDEX IF NOT EXISTS ix_firefighters_segment ON app.firefighters(segment_id);
---CREATE INDEX IF NOT EXISTS ix_vehicles_segment ON app.vehicles(segment_id);
---CREATE INDEX IF NOT EXISTS ix_equipment_segment ON app.equipment(segment_id);
---CREATE INDEX IF NOT EXISTS ix_shifts_segment ON app.shifts(segment_id);
---CREATE INDEX IF NOT EXISTS ix_responses_segment ON app.responses(segment_id);
 
 CREATE INDEX IF NOT EXISTS ix_incidents_segment_station ON app.incidents(segment_id, station_id);
 CREATE INDEX IF NOT EXISTS ix_stations_segment_name ON app.stations(segment_id, name);

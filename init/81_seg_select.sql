@@ -6,7 +6,6 @@ FOR SELECT
 TO firestation_users
 USING (
     (sec.current_segment() IS NOT NULL AND segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(segment_id)
 );
 
 -- STATIONS
@@ -15,8 +14,7 @@ AS PERMISSIVE
 FOR SELECT
 TO firestation_users
 USING (
-    (sec.current_segment() IS NOT NULL AND segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(segment_id)
+    (sec.current_segment() IS NOT NULL AND segment_id = sec.current_segment()) 
 );
 
 -- FIREFIGHTERS
@@ -26,7 +24,6 @@ FOR SELECT
 TO firestation_users
 USING (
     (sec.current_segment() IS NOT NULL AND segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(segment_id)
 );
 
 -- VEHICLES
@@ -35,8 +32,7 @@ AS PERMISSIVE
 FOR SELECT
 TO firestation_users
 USING (
-    (sec.current_segment() IS NOT NULL AND segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(segment_id)
+    (sec.current_segment() IS NOT NULL AND segment_id = sec.current_segment()) 
 );
 
 -- EQUIPMENT
@@ -46,7 +42,6 @@ FOR SELECT
 TO firestation_users
 USING (
     (sec.current_segment() IS NOT NULL AND segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(segment_id)
 );
 
 -- RESPONSES
@@ -55,8 +50,7 @@ AS PERMISSIVE
 FOR SELECT
 TO firestation_users
 USING (
-    (sec.current_segment() IS NOT NULL AND segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(segment_id)
+    (sec.current_segment() IS NOT NULL AND segment_id = sec.current_segment()) 
 );
 
 -- SHIFTS
@@ -65,6 +59,5 @@ AS PERMISSIVE
 FOR SELECT
 TO firestation_users
 USING (
-    (sec.current_segment() IS NOT NULL AND segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(segment_id)
+    (sec.current_segment() IS NOT NULL AND segment_id = sec.current_segment()) 
 );

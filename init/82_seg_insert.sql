@@ -13,19 +13,8 @@ WITH CHECK (
   )
   AND (
     (sec.current_segment() IS NOT NULL AND app.incidents.segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(app.incidents.segment_id)
   )
 );
-
--- STATIONS
---CREATE POLICY rls_stations_insert ON app.stations
---AS PERMISSIVE
---FOR INSERT 
---TO firestation_users
---WITH CHECK (
---  (sec.current_segment() IS NOT NULL AND app.stations.segment_id = sec.current_segment())
---  OR sec.has_access_to_segment(app.stations.segment_id)
---);
 
 -- FIREFIGHTERS
 CREATE POLICY rls_firefighters_insert ON app.firefighters
@@ -41,7 +30,6 @@ WITH CHECK (
   )
   AND (
     (sec.current_segment() IS NOT NULL AND app.firefighters.segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(app.firefighters.segment_id)
   )
 );
 
@@ -59,7 +47,6 @@ WITH CHECK (
   )
   AND (
     (sec.current_segment() IS NOT NULL AND app.vehicles.segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(app.vehicles.segment_id)
   )
 );
 
@@ -77,7 +64,6 @@ WITH CHECK (
   )
   AND (
     (sec.current_segment() IS NOT NULL AND app.equipment.segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(app.equipment.segment_id)
   )
 );
 
@@ -114,7 +100,6 @@ WITH CHECK (
   -- доступ к самому сегменту
   AND (
     (sec.current_segment() IS NOT NULL AND app.responses.segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(app.responses.segment_id)
   )
 );
 
@@ -132,6 +117,5 @@ WITH CHECK (
   )
   AND (
     (sec.current_segment() IS NOT NULL AND app.shifts.segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(app.shifts.segment_id)
   )
 );

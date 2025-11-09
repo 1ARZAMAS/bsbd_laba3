@@ -5,7 +5,6 @@ FOR UPDATE
 TO firestation_users
 USING (
   (sec.current_segment() IS NOT NULL AND app.incidents.segment_id = sec.current_segment())
-  OR sec.has_access_to_segment(app.incidents.segment_id)
 )
 WITH CHECK (
   EXISTS (
@@ -16,7 +15,6 @@ WITH CHECK (
   )
   AND (
     (sec.current_segment() IS NOT NULL AND app.incidents.segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(app.incidents.segment_id)
   )
 );
 
@@ -27,11 +25,9 @@ FOR UPDATE
 TO firestation_users
 USING (
   (sec.current_segment() IS NOT NULL AND app.stations.segment_id = sec.current_segment())
-  OR sec.has_access_to_segment(app.stations.segment_id)
 )
 WITH CHECK (
   (sec.current_segment() IS NOT NULL AND app.stations.segment_id = sec.current_segment())
-  OR sec.has_access_to_segment(app.stations.segment_id)
 );
 
 -- FIREFIGHTERS
@@ -41,7 +37,6 @@ FOR UPDATE
 TO firestation_users
 USING (
   (sec.current_segment() IS NOT NULL AND app.firefighters.segment_id = sec.current_segment())
-  OR sec.has_access_to_segment(app.firefighters.segment_id)
 )
 WITH CHECK (
   EXISTS (
@@ -52,7 +47,6 @@ WITH CHECK (
   )
   AND (
     (sec.current_segment() IS NOT NULL AND app.firefighters.segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(app.firefighters.segment_id)
   )
 );
 
@@ -63,7 +57,6 @@ FOR UPDATE
 TO firestation_users
 USING (
   (sec.current_segment() IS NOT NULL AND app.vehicles.segment_id = sec.current_segment())
-  OR sec.has_access_to_segment(app.vehicles.segment_id)
 )
 WITH CHECK (
   EXISTS (
@@ -74,7 +67,6 @@ WITH CHECK (
   )
   AND (
     (sec.current_segment() IS NOT NULL AND app.vehicles.segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(app.vehicles.segment_id)
   )
 );
 
@@ -85,7 +77,6 @@ FOR UPDATE
 TO firestation_users
 USING (
   (sec.current_segment() IS NOT NULL AND app.equipment.segment_id = sec.current_segment())
-  OR sec.has_access_to_segment(app.equipment.segment_id)
 )
 WITH CHECK (
   EXISTS (
@@ -96,7 +87,6 @@ WITH CHECK (
   )
   AND (
     (sec.current_segment() IS NOT NULL AND app.equipment.segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(app.equipment.segment_id)
   )
 );
 
@@ -107,7 +97,6 @@ FOR UPDATE
 TO firestation_users
 USING (
   (sec.current_segment() IS NOT NULL AND app.responses.segment_id = sec.current_segment())
-  OR sec.has_access_to_segment(app.responses.segment_id)
 )
 WITH CHECK (
   -- тот же сегмент, что у инцидента
@@ -132,7 +121,6 @@ WITH CHECK (
   )
   AND (
     (sec.current_segment() IS NOT NULL AND app.responses.segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(app.responses.segment_id)
   )
 );
 
@@ -142,7 +130,6 @@ AS PERMISSIVE
 FOR UPDATE TO firestation_users
 USING (
   (sec.current_segment() IS NOT NULL AND app.shifts.segment_id = sec.current_segment())
-  OR sec.has_access_to_segment(app.shifts.segment_id)
 )
 WITH CHECK (
   EXISTS (
@@ -153,7 +140,6 @@ WITH CHECK (
   )
   AND (
     (sec.current_segment() IS NOT NULL AND app.shifts.segment_id = sec.current_segment())
-    OR sec.has_access_to_segment(app.shifts.segment_id)
   )
 );
 
