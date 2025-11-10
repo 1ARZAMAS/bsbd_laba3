@@ -5,11 +5,11 @@ SELECT plan(6);
 SET ROLE stat_user_1;
 SET search_path = pgtap, public, ref, app, sec, audit, pg_temp;
 
--- 1) INSERT equipment в своём сегменте (без явного PK — проверяем доступ к sequence)
 BEGIN;
 SAVEPOINT sp_ctx;
 SELECT sec.set_session_ctx((SELECT id FROM ref.segment WHERE role_name = current_role), 3101);
 
+-- 1) INSERT equipment в своём сегменте (без явного PK — проверяем доступ к sequence)
 SELECT lives_ok($$
   WITH s AS (
     SELECT station_id
@@ -106,7 +106,8 @@ SELECT lives_ok($$
   USING ins
   WHERE e.equipment_id = ins.equipment_id;
 $$, 'equipment delete (own row) succeeds');
--- 6) DELETE vehicles чужой строки через обычный DELETE → 0 строк (не ошибка, проверяем факт нуля)
+
+-- 6) DELETE vehicles чужой строки через обычный DELETE → 0 строк (проверяем факт нуля)
 SELECT sec.set_session_ctx((SELECT id FROM ref.segment WHERE role_name = current_role), 3106);
 
 -- замеряем до/после: количество видимых записей не меняется
