@@ -1,11 +1,21 @@
-SELECT sec.set_current_segment( (SELECT id FROM ref.segment WHERE role_name = 'stat_user_1') );
+Защита БД пожарной станции – обеспечение конфиденциальности данных о вызовах, личном составе, оборудовании и планах реагирования.
 
-ROLLBACK;
-BEGIN;
-SELECT sec.set_session_ctx(
-  (SELECT id FROM ref.segment WHERE role_name = current_role),
-  1001
-);
+Цель: спроектировать доменную схему, классифицировать данные и настроить доступ с разделением обязанностей, реализовать построчную изоляцию данных между пользователями/группами/филиалами с помощью RLS
 
-
-docker compose run --rm tester
+Задачи:
+● Создайте схемы app, ref, audit, stg. Реализуйте DDL (PK, FK, UNIQUE, CHECK, индексы (где они необходимы), NOT NULL).
+● Сгенерируйте тестовые данные (≥ 10 строк в ключевых таблицах).
+● Спроектируйте и создайте роли: app_reader, app_writer, app_owner, auditor; и роли разделения обязанностей: ddl_admin, dml_admin, security_admin.
+● Назначьте привилегии на уровне схем/таблиц/последовательностей. Настройте default privileges, запретите PUBLIC доступ.
+● audit-схема доступна на чтение только auditor; INSERT туда только через триггеры.
+● Создайте таблицу audit.login_log (login_time, username, client_ip) и триггер или функцию, которая при подключении пользователя (через event trigger или SECURITY DEFINER-функцию при старте сессии) записывает информацию о входе. Протестируйте под разными ролями.
+● SECURITY DEFINER-функции (точечное повышение)
+● Добавьте таблицу audit.function_calls (call_time, function_name, caller_role, input_params, success). Модифицируйте ваши функции так, чтобы они логировали каждый вызов. Протестируйте и покажите лог после нескольких вызовов.
+● Добавьте segment_id во все ключевые таблицы app.*; FK на ref.segment (или аналогичный справочник).
+● Создайте индексы, покрывающие условия политик (segment_id + ключи фильтрации).
+● Включите RLS и FORCE RLS на ключевых таблицах (ALTER TABLE ... ENABLE ROW LEVEL SECURITY).
+● Опишите и создайте POLICY для SELECT/INSERT/UPDATE/DELETE с использованием current_user или безопасного GUC (например, app.user_id) для идентификации субъекта.
+  — Идентификация субъекта через current_user или безопасный GUC (например, current_setting('app.segment_id', true)), с резервным путём сопоставления логин-ролей → segment_id.
+  — Для INSERT/UPDATE задайте USING и WITH CHECK, запрещающие кросс-сегментные операции.
+● SECURITY DEFINER-функция set_session_ctx(segment_id, actor_id), проверяющая право роли на сегмент и делающая SET LOCAL для GUC.
+● Создайте политику, которая позволяет роли auditor видеть все строки во всех сегментах (без ограничений RLS). Используйте условие USING (current_user = 'auditor' OR segment_id = current_setting(...)). Протестируйте – убедитесь, что auditor видит всё, а остальные – только своё.
